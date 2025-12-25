@@ -1,0 +1,39 @@
+{
+  "name": "dtz-nova-xmd-pair",
+  "version": "2.0.0",
+  "description": "Advanced WhatsApp Web Pairing System",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "pm2-start": "pm2 start index.js --name DTZ_NOVA_XMD --watch",
+    "pm2-stop": "pm2 stop DTZ_NOVA_XMD",
+    "pm2-restart": "pm2 restart DTZ_NOVA_XMD",
+    "pm2-logs": "pm2 logs DTZ_NOVA_XMD",
+    "clean": "rm -rf temp/* sessions/*"
+  },
+  "keywords": ["whatsapp", "bot", "pairing", "baileys"],
+  "author": "DTZ NOVA XMD",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.5.0",
+    "express": "^4.18.2",
+    "pino": "^8.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "fs-extra": "^11.2.0",
+    "helmet": "^7.0.0",
+    "compression": "^1.7.4",
+    "rate-limiter-flexible": "^2.4.2",
+    "express-rate-limit": "^6.7.0",
+    "morgan": "^1.10.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
+[file content end]
