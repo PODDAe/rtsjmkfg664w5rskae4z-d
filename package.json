@@ -12,7 +12,12 @@
     "pm2-logs": "pm2 logs DTZ_NOVA_XMD",
     "clean": "rm -rf temp/* sessions/*"
   },
-  "keywords": ["whatsapp", "bot", "pairing", "baileys"],
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "pairing",
+    "baileys"
+  ],
   "author": "DTZ NOVA XMD",
   "license": "MIT",
   "dependencies": {
@@ -24,7 +29,6 @@
     "fs-extra": "^11.2.0",
     "helmet": "^7.0.0",
     "compression": "^1.7.4",
-    "rate-limiter-flexible": "^2.4.2",
     "express-rate-limit": "^6.7.0",
     "morgan": "^1.10.0",
     "uuid": "^9.0.0"
@@ -36,4 +40,3 @@
     "node": ">=16.0.0"
   }
 }
-[file content end]
