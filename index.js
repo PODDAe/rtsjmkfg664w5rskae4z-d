@@ -7,7 +7,6 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const fs = require('fs-extra');
 const path = require('path');
-const cluster = require('cluster');
 const os = require('os');
 
 // Import routes
@@ -18,7 +17,6 @@ class WhatsAppPairServer {
         this.app = express();
         this.port = process.env.PORT || 8001;
         this.isProduction = process.env.NODE_ENV === 'production';
-        this.numCPUs = this.isProduction ? os.cpus().length : 1;
         
         this.initDirectories();
         this.configureMiddleware();
@@ -49,9 +47,10 @@ class WhatsAppPairServer {
             contentSecurityPolicy: {
                 directives: {
                     defaultSrc: ["'self'"],
-                    styleSrc: ["'self'", "'unsafe-inline'"],
-                    scriptSrc: ["'self'"],
+                    styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+                    scriptSrc: ["'self'", "'unsafe-inline'"],
                     imgSrc: ["'self'", "data:", "https:"],
+                    fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
                     connectSrc: ["'self'"],
                 },
             },
@@ -59,9 +58,7 @@ class WhatsAppPairServer {
 
         // CORS configuration
         this.app.use(cors({
-            origin: process.env.NODE_ENV === 'production' 
-                ? ['https://yourdomain.com'] 
-                : '*',
+            origin: true,
             credentials: true,
             methods: ['GET', 'POST', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization']
@@ -69,12 +66,11 @@ class WhatsAppPairServer {
 
         // Rate limiting
         const limiter = rateLimit({
-            windowMs: 15 * 60 * 1000, // 15 minutes
-            max: 100, // Limit each IP to 100 requests per windowMs
+            windowMs: 15 * 60 * 1000,
+            max: 100,
             message: 'Too many requests from this IP, please try again later.',
             standardHeaders: true,
             legacyHeaders: false,
-            skipSuccessfulRequests: false
         });
 
         this.app.use('/api/', limiter);
@@ -96,7 +92,7 @@ class WhatsAppPairServer {
         // Static files
         this.app.use(express.static(path.join(__dirname)));
         
-        // Request logging middleware
+        // Request logging
         this.app.use((req, res, next) => {
             const ip = req.ip || req.connection.remoteAddress;
             console.log(`${new Date().toISOString()} - ${req.method} ${req.url} - IP: ${ip}`);
@@ -111,8 +107,8 @@ class WhatsAppPairServer {
                 status: 'ok',
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
-                memory: process.memoryUsage(),
-                environment: process.env.NODE_ENV
+                environment: process.env.NODE_ENV,
+                version: '2.0.0'
             });
         });
 
@@ -147,8 +143,7 @@ class WhatsAppPairServer {
                 error: {
                     code: statusCode,
                     message: message,
-                    timestamp: new Date().toISOString(),
-                    path: req.url
+                    timestamp: new Date().toISOString()
                 }
             });
         });
@@ -165,32 +160,14 @@ class WhatsAppPairServer {
         });
     }
 
-    startCluster() {
-        if (cluster.isMaster) {
-            console.log(`🚀 Master ${process.pid} is running`);
-            console.log(`📊 Starting ${this.numCPUs} workers`);
-
-            // Fork workers
-            for (let i = 0; i < this.numCPUs; i++) {
-                cluster.fork();
-            }
-
-            cluster.on('exit', (worker, code, signal) => {
-                console.log(`⚠️ Worker ${worker.process.pid} died`);
-                console.log('🔄 Starting a new worker');
-                cluster.fork();
-            });
-        } else {
-            this.startWorker();
-        }
-    }
-
-    startWorker() {
-        const server = this.app.listen(this.port, '0.0.0.0', () => {
-            console.log(`✅ Worker ${process.pid} started`);
-            console.log(`🌐 Server running on port ${this.port}`);
+    start() {
+        const server = this.app.listen(this.port, () => {
+            console.log('='.repeat(50));
+            console.log(`✅ DTZ NOVA XMD Pairing Server Started`);
+            console.log(`🌐 Port: ${this.port}`);
             console.log(`📁 Environment: ${process.env.NODE_ENV}`);
             console.log(`🕐 Server time: ${new Date().toLocaleString()}`);
+            console.log(`🚀 Access: http://localhost:${this.port}`);
             console.log('='.repeat(50));
         });
 
@@ -201,13 +178,9 @@ class WhatsAppPairServer {
             
             server.close(() => {
                 console.log('✅ HTTP server closed');
-                console.log('🧹 Cleaning up resources...');
-                
-                // Cleanup logic here
                 process.exit(0);
             });
 
-            // Force close after 10 seconds
             setTimeout(() => {
                 console.error('❌ Could not close connections in time, forcefully shutting down');
                 process.exit(1);
@@ -216,14 +189,6 @@ class WhatsAppPairServer {
 
         process.on('SIGTERM', gracefulShutdown);
         process.on('SIGINT', gracefulShutdown);
-    }
-
-    start() {
-        if (this.isProduction && this.numCPUs > 1) {
-            this.startCluster();
-        } else {
-            this.startWorker();
-        }
     }
 }
 
@@ -234,4 +199,3 @@ if (require.main === module) {
 }
 
 module.exports = WhatsAppPairServer;
-[file content end]
